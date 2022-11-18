@@ -1,0 +1,21 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: psa-create-db
+spec:
+  template:
+    spec:
+      containers:
+        - name: sqlcmd
+          image: postgres:15.1
+          args:
+            - /bin/bash
+            - -c
+            - |
+              createuser psa;
+              createdb psa-prod;
+              psql -h postgres -U admin --password pass -c "ALTER USER psa WITH ENCRYPTED PASSWORD 'pass';
+              psql -h postgres -U admin --password pass -c "GRANT ALL PRIVILEGES ON DATABASE psa-prod TO psa";
+              psql -h postgres -d psa-prod -U admin --password pass -c "CREATE SCHEMA psa_config AUTHORIZATION psa";
+      restartPolicy: Never
+  backoffLimit: 4
